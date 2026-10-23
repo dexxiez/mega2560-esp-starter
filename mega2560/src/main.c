@@ -1,16 +1,15 @@
-#include <avr/interrupt.h>
-#include <stdio.h>
-
 #include "board.h"
 #include "drivers/systick.h"
 #include "drivers/uart.h"
 #include "drivers/uart_stdio.h"
 
+#include <avr/interrupt.h>
+#include <stdio.h>
+
 #define BLINK_MS 500
 
 /* Forward bytes USB <-> ESP so AT commands can be typed from the monitor. */
-static void bridge_poll(void)
-{
+static void bridge_poll(void) {
     int c;
 
     while ((c = uart_getc(UART_USB)) >= 0)
@@ -19,8 +18,7 @@ static void bridge_poll(void)
         uart_putc(UART_USB, (char)c);
 }
 
-int main(void)
-{
+int main(void) {
     LED_DDR |= _BV(LED_PIN);
 
     uart_init(UART_USB, USB_BAUD);

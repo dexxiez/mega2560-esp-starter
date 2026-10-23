@@ -32,10 +32,16 @@ esp8266/
 ├── sdkconfig.defaults       committed config overrides (sdkconfig itself is generated)
 └── src/
     ├── main/                app_main()
-    └── heartbeat/           example component (include/ holds its public header)
+    ├── heartbeat/           example component (include/ holds its public header)
+    └── shared/              header-only component exposing ../shared/include
+
+shared/
+└── include/                 headers both chips can #include
 ```
 
 Any `.c` file under `mega2560/src/` is picked up automatically. On the ESP side, add a folder under `esp8266/src/` with its own `CMakeLists.txt` to create a new component.
+
+Headers in `shared/include/` are on the include path for both chips (`#include "foo.h"`). Keep them portable: plain C with fixed-width types, since `int` is 16-bit on AVR and 32-bit on the ESP8266. On the ESP, `main` sees them automatically; other components need `REQUIRES shared` in their `CMakeLists.txt`. After adding a new component folder, run `idf.py reconfigure` (or `just esp-clean`) so CMake picks it up.
 
 ## DIP switches
 

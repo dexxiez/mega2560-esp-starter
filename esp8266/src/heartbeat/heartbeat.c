@@ -1,24 +1,25 @@
 #include "heartbeat.h"
 
+#include <inttypes.h>
+#include <stdint.h>
+
 #include "esp_log.h"
 #include "esp_system.h"
-#include "freertos/FreeRTOS.h"
+#include "freertos/FreeRTOS.h" // IWYU pragma: export
 #include "freertos/task.h"
 
 static const char *TAG = "heartbeat";
 
-static void heartbeat_task(void *arg)
-{
-    const TickType_t period = pdMS_TO_TICKS((uint32_t)arg);
+static void heartbeat_task(void *arg) {
+    const TickType_t period = pdMS_TO_TICKS((uint32_t)(uintptr_t)arg);
     uint32_t beats = 0;
 
     for (;;) {
-        ESP_LOGI(TAG, "beat %u, free heap %u", beats++, esp_get_free_heap_size());
+        ESP_LOGI(TAG, "beat %" PRIu32 ", free heap %" PRIu32, beats++, esp_get_free_heap_size());
         vTaskDelay(period);
     }
 }
 
-void heartbeat_start(uint32_t period_ms)
-{
-    xTaskCreate(heartbeat_task, "heartbeat", 2048, (void *)period_ms, 5, NULL);
+void heartbeat_start(uint32_t period_ms) {
+    xTaskCreate(heartbeat_task, "heartbeat", 2048, (void *)(uintptr_t)period_ms, 5, NULL);
 }

@@ -5,7 +5,7 @@
 #include <util/atomic.h>
 
 #define RX_BUF_SIZE 128 /* power of two */
-#define RX_MASK     (RX_BUF_SIZE - 1)
+#define RX_MASK (RX_BUF_SIZE - 1)
 
 typedef struct {
     volatile uint8_t *ucsra;
@@ -23,25 +23,23 @@ typedef struct {
 
 /* USART register bit positions are identical across USART0..3 on the 2560. */
 static const uart_regs_t regs[UART_COUNT] = {
-    [UART_USB] = { &UCSR0A, &UCSR0B, &UCSR0C, &UBRR0, &UDR0 },
-    [UART_ESP] = { &UCSR3A, &UCSR3B, &UCSR3C, &UBRR3, &UDR3 },
+    [UART_USB] = {&UCSR0A, &UCSR0B, &UCSR0C, &UBRR0, &UDR0},
+    [UART_ESP] = {&UCSR3A, &UCSR3B, &UCSR3C, &UBRR3, &UDR3},
 };
 
 static rx_ring_t rx[UART_COUNT];
 
-void uart_init(uart_port_t port, uint32_t baud)
-{
+void uart_init(uart_port_t port, uint32_t baud) {
     const uart_regs_t *r = &regs[port];
 
     /* Double-speed mode: lower baud error at 115200 on a 16 MHz crystal. */
     *r->ucsra = _BV(U2X0);
-    *r->ubrr  = (uint16_t)((F_CPU + baud * 4) / (baud * 8) - 1);
+    *r->ubrr = (uint16_t)((F_CPU + baud * 4) / (baud * 8) - 1);
     *r->ucsrc = _BV(UCSZ01) | _BV(UCSZ00); /* 8N1 */
     *r->ucsrb = _BV(RXEN0) | _BV(TXEN0) | _BV(RXCIE0);
 }
 
-void uart_putc(uart_port_t port, char c)
-{
+void uart_putc(uart_port_t port, char c) {
     const uart_regs_t *r = &regs[port];
 
     while (!(*r->ucsra & _BV(UDRE0)))
@@ -49,14 +47,12 @@ void uart_putc(uart_port_t port, char c)
     *r->udr = (uint8_t)c;
 }
 
-void uart_puts(uart_port_t port, const char *s)
-{
+void uart_puts(uart_port_t port, const char *s) {
     while (*s)
         uart_putc(port, *s++);
 }
 
-int uart_getc(uart_port_t port)
-{
+int uart_getc(uart_port_t port) {
     rx_ring_t *q = &rx[port];
     int c = -1;
 
@@ -69,8 +65,7 @@ int uart_getc(uart_port_t port)
     return c;
 }
 
-static inline void rx_push(uart_port_t port, uint8_t byte)
-{
+static inline void rx_push(uart_port_t port, uint8_t byte) {
     rx_ring_t *q = &rx[port];
     uint8_t next = (q->head + 1) & RX_MASK;
 
@@ -80,5 +75,9 @@ static inline void rx_push(uart_port_t port, uint8_t byte)
     }
 }
 
-ISR(USART0_RX_vect) { rx_push(UART_USB, UDR0); }
-ISR(USART3_RX_vect) { rx_push(UART_ESP, UDR3); }
+ISR(USART0_RX_vect) {
+    rx_push(UART_USB, UDR0);
+}
+ISR(USART3_RX_vect) {
+    rx_push(UART_ESP, UDR3);
+}
